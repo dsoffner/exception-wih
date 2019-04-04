@@ -28,38 +28,23 @@ public class ExceptionWorkItemHandler implements WorkItemHandler, Cacheable {
 
     @Override
     public void executeWorkItem(WorkItem workItem, WorkItemManager manager)  {
-        
-        
+               
         System.out.println("Executing rules for releaseId " + releaseId); 
     
-        KieSession kieSession;
-        String kieSessionName = (String)workItem.getParameter("kieSession");
         String throwException = (String)workItem.getParameter("throwException");
         
-        if(throwException != null && throwException.equals("true"))
+        try
         {
-        	throw new RuntimeException("executeWorkItem threw an exception");
+	        if(throwException != null && throwException.equalsIgnoreCase("true"))
+	        {
+	        	throw new Exception("executeWorkItem threw an exception");
+	        }
         }
-             
-        if (kieSessionName == null || kieSessionName.isEmpty()) {
-            System.out.println("***** WARNING ********:  value for servicetask parameter kieSession is not found!!!!  Check the data inputs assignments for your service task");
-            kieSession = kieContainer.newKieSession();
-        } else {
-            kieSession = kieContainer.newKieSession(kieSessionName);
+        catch(Exception e)
+        {
+        	System.out.println("ExecuteWorkItem Exception caught");
         }
-        
-        for (String param : workItem.getParameters().keySet()) {
-            if (param.startsWith("fact_")) {
-                kieSession.insert(workItem.getParameter(param));
-            }
-        }
-        String processId = (String)workItem.getParameter("processId");
-        if (processId != null && !processId.isEmpty()) {
-            kieSession.startProcess(processId);
-        }
-        kieSession.fireAllRules();
-        kieSession.dispose();
-        manager.completeWorkItem(workItem.getId(), workItem.getParameters());         
+                    
     }
 
     @Override
